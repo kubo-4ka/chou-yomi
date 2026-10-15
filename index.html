@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>調よみ練習帳</title>
+  <meta name="description" content="楽譜の調号から調（ハ長調・イ短調など）を読み取る練習帳。調号・終わりの音・導音・響きから調を特定するクイズ、聴き取りクイズ、調の一覧と名曲、五度圏、調とは何かの説明。">
+  <meta name="theme-color" content="#faf7f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16141b" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="調よみ">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Shippori+Mincho:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- ト音記号・ヘ音記号・ダブルシャープ・ダブルフラットの字形（必要な文字だけ読み込む） -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Music&text=%F0%9D%84%9E%F0%9D%84%A2%F0%9D%84%AA%F0%9D%84%AB&display=block" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Apply the saved theme before paint to avoid a flash
+    try { var t = localStorage.getItem('cy.theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9.6 4.5v15M14.4 3.5v15"/><path class="f" d="M6.5 9.8l11-3v2.4l-11 3zM6.5 15.2l11-3v2.4l-11 3z"/></svg>
+        </span>
+        <div>
+          <h1>調よみ練習帳</h1>
+          <p class="brand-sub">Key Reading &middot; Workbook</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="テーマを切り替え" title="テーマを切り替え">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      </button>
+    </header>
+
+    <main>
+      <!-- ===== Quiz ===== -->
+      <section class="view" id="view-quiz" aria-label="クイズ">
+        <div id="quizSetup" class="stack">
+          <div class="today" id="todayBox"></div>
+          <div id="stepBox"></div>
+          <div class="modes" id="modeList"></div>
+
+          <details class="settings" id="settingsBox">
+            <summary><span>出題の設定</span><span class="summary-line" id="settingsSummary"></span></summary>
+            <div class="settings-body">
+              <div class="field-row">
+                <div class="field">
+                  <span class="field-label">記号</span>
+                  <div class="seg" id="clefSeg" role="radiogroup" aria-label="記号"></div>
+                </div>
+                <div class="field">
+                  <span class="field-label">出す調</span>
+                  <div class="seg" id="modeSeg" role="radiogroup" aria-label="出す調"></div>
+                </div>
+              </div>
+              <div class="field-row">
+                <label class="field">
+                  <span class="field-label">調号の数</span>
+                  <select id="optRange">
+                    <option value="1">♯・♭ 1つまで</option>
+                    <option value="2">♯・♭ 2つまで</option>
+                    <option value="3">♯・♭ 3つまで</option>
+                    <option value="4">♯・♭ 4つまで</option>
+                    <option value="5">♯・♭ 5つまで</option>
+                    <option value="6">♯・♭ 6つまで</option>
+                    <option value="7">♯・♭ 7つまで（すべて）</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field-label">問題数</span>
+                  <select id="optCount">
+                    <option value="5">5問</option>
+                    <option value="10">10問</option>
+                    <option value="15">15問</option>
+                    <option value="20">20問</option>
+                    <option value="30">30問</option>
+                  </select>
+                </label>
+              </div>
+              <div class="field">
+                <span class="field-label">調の名前の表記</span>
+                <div class="seg" id="ksysSeg" role="radiogroup" aria-label="調の名前の表記"></div>
+                <p class="hint" id="ksysHint"></p>
+              </div>
+
+              <div class="field">
+                <span class="field-label">「手がかりで調を特定」で出す手がかり</span>
+                <div class="checks" id="clueChecks"></div>
+              </div>
+              <div class="field">
+                <span class="field-label">「関係調」で聞く関係</span>
+                <div class="checks" id="relChecks"></div>
+              </div>
+              <div class="field">
+                <span class="field-label">聴き取りクイズ</span>
+                <div class="field-row">
+                  <label class="field">
+                    <span class="field-label">「聴いて調を当てる」で鳴らすもの</span>
+                    <select id="optEarPlay">
+                      <option value="both">音階 → 和音（終止形）</option>
+                      <option value="scale">音階（構成音）だけ</option>
+                      <option value="cadence">和音（終止形）だけ</option>
+                      <option value="phrase">短いメロディ</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span class="field-label">速さ</span>
+                    <select id="optTempo">
+                      <option value="slow">ゆっくり</option>
+                      <option value="mid">ふつう</option>
+                      <option value="fast">速め</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="check"><input type="checkbox" id="optEarSig"> 「聴いて調を当てる」で調号を見せる（ヒント）</label>
+                <label class="check"><input type="checkbox" id="optRef"> 先に基準の「ド」（C4）を鳴らす</label>
+              </div>
+
+              <label class="check"><input type="checkbox" id="optWeak" checked> 間違えた調を多めに出す</label>
+              <label class="check"><input type="checkbox" id="optAuto"> 正解したら自動で次の問題へ</label>
+              <label class="check"><input type="checkbox" id="optSound" checked> 答えたら、その調の響きを鳴らす</label>
+
+              <div class="field-row">
+                <label class="field">
+                  <span class="field-label">音色</span>
+                  <select id="optTone"></select>
+                </label>
+                <label class="field">
+                  <span class="field-label">音量</span>
+                  <select id="optVolume">
+                    <option value="0.3">小さめ</option>
+                    <option value="0.55">ふつう</option>
+                    <option value="0.8">大きめ</option>
+                    <option value="1">最大</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field-label">1日の目標</span>
+                  <select id="optGoal">
+                    <option value="10">10問</option>
+                    <option value="20">20問</option>
+                    <option value="30">30問</option>
+                    <option value="50">50問</option>
+                  </select>
+                </label>
+              </div>
+              <p class="hint">iPhone はマナーモード（消音）のとき音が出ないことがあります。音が出ないときは消音スイッチを確認してください。</p>
+            </div>
+          </details>
+        </div>
+
+        <div id="quizPlay" class="quiz" hidden>
+          <div class="quiz-top">
+            <button class="text-btn" id="quitBtn" type="button">&larr; やめる</button>
+            <span class="progress-label" id="progressLabel">1 / 10</span>
+            <span class="score-label" id="scoreLabel">0 正解</span>
+          </div>
+          <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+          <p class="prompt" id="prompt"></p>
+          <div class="stage" id="stage"></div>
+          <div class="clue" id="clue" hidden></div>
+          <div class="gloss" id="gloss" aria-live="polite"></div>
+
+          <div class="choices" id="choices"></div>
+          <div class="next-row">
+            <button class="btn ghost" id="replayBtn" type="button" hidden>もう一度聴く</button>
+            <button class="btn ghost" id="detailBtn" type="button" hidden>この調を詳しく</button>
+            <button class="btn" id="nextBtn" type="button" hidden>次へ</button>
+          </div>
+          <p class="kbd-hint" id="kbdHint"></p>
+        </div>
+
+        <div id="quizResult" class="result" hidden>
+          <p class="result-kicker">Result</p>
+          <p class="result-score"><span id="resultScore">0</span><small id="resultTotal"> / 10</small></p>
+          <p class="result-title" id="resultTitle"></p>
+          <div class="result-actions">
+            <button class="btn" id="againBtn" type="button">もう一度</button>
+            <button class="btn ghost" id="retryMissBtn" type="button" hidden>間違えた問題だけ</button>
+            <button class="btn ghost" id="backBtn" type="button">形式を選ぶ</button>
+          </div>
+          <div class="review" id="review"></div>
+        </div>
+      </section>
+
+      <!-- ===== Key list ===== -->
+      <section class="view" id="view-keys" aria-label="調の一覧">
+        <div class="toolbar">
+          <div class="seg" id="listClefSeg" role="radiogroup" aria-label="記号"></div>
+          <div class="seg" id="listSysSeg" role="radiogroup" aria-label="調の名前の表記"></div>
+        </div>
+        <p class="hint">同じ調号を使う長調と短調（平行調）を1組にして並べています。調の名前を押すと、音階・和音・イメージ・有名な曲を表示します。</p>
+        <div class="key-rows" id="keyRows"></div>
+        <h2 class="sub-head">調号から調を見つける早見表</h2>
+        <div class="table-wrap"><table class="name-table" id="keyTable"></table></div>
+      </section>
+
+      <!-- ===== Listen ===== -->
+      <section class="view" id="view-listen" aria-label="曲を聴く">
+        <div class="ls-panel">
+          <div class="field">
+            <span class="field-label">曲</span>
+            <div class="seg ls-seg" id="lsSong" role="radiogroup" aria-label="曲"></div>
+            <p class="hint" id="lsMelInfo"></p>
+          </div>
+          <div class="field">
+            <span class="field-label">聴き方</span>
+            <div class="seg ls-seg" id="lsMode" role="radiogroup" aria-label="聴き方"></div>
+          </div>
+
+          <div id="lsSingle">
+            <label class="field">
+              <span class="field-label">調</span>
+              <select id="lsKey" class="ls-select"></select>
+            </label>
+            <div class="ls-moves" id="lsMoves"></div>
+            <p class="hint">ボタンを押すと、その調に移して楽譜を書きかえます。再生中に押すと、その調で最初から鳴らし直します。</p>
+          </div>
+
+          <div id="lsList" hidden>
+            <span class="field-label">再生する順番</span>
+            <div class="ls-chips" id="lsChips"></div>
+          </div>
+        </div>
+
+        <div class="ls-stage">
+          <div class="ls-now" id="lsNow"></div>
+          <p class="song-note" id="lsNote"></p>
+          <div class="song-score" id="lsScore"></div>
+          <div class="song-ctl">
+            <button class="play-btn song-play ls-play" id="lsPlay" type="button">再生</button>
+            <label class="check small"><input type="checkbox" id="lsAcc"> 伴奏の和音</label>
+            <label class="check small" id="lsListOpts"><input type="checkbox" id="lsLoop"> くり返す</label>
+          </div>
+          <div class="field-row ls-opts">
+            <div class="field">
+              <span class="field-label">記号</span>
+              <div class="seg" id="lsClef" role="radiogroup" aria-label="記号"></div>
+            </div>
+            <label class="field"><span class="field-label">音色</span><select id="lsTone"></select></label>
+            <label class="field"><span class="field-label">速さ</span><select id="lsSpeed"></select></label>
+            <label class="field"><span class="field-label">調の切りかえ（順に聴くとき）</span><select id="lsGap"></select></label>
+          </div>
+        </div>
+
+        <div id="lsListMore" class="ls-more">
+          <h2 class="sub-head">おすすめの並び</h2>
+          <p class="hint">場面の移り変わりをイメージしやすい組み合わせです。押すと再生順が置きかわります。</p>
+          <div class="ls-presets" id="lsPresets"></div>
+          <h2 class="sub-head">調を選ぶ <button class="text-btn" id="lsClear" type="button">すべて外す</button></h2>
+          <p class="hint">チェックした順に再生順に加わります。順番は上の「再生する順番」の ↑ ↓ で入れかえられます。</p>
+          <div class="ls-grid" id="lsGrid"></div>
+        </div>
+      </section>
+
+      <!-- ===== Circle of fifths ===== -->
+      <section class="view" id="view-circle" aria-label="五度圏">
+        <div class="circle-wrap">
+          <div class="circle-box" id="circleBox"></div>
+          <div class="circle-panel" id="circlePanel"></div>
+        </div>
+        <div class="legend" id="circleLegend"></div>
+        <h2 class="sub-head">五度圏の見かた</h2>
+        <dl class="defs">
+          <dt>外側が長調、内側が短調</dt><dd>同じ位置にある長調と短調は、調号が同じ「平行調」です（ハ長調とイ短調など）。</dd>
+          <dt>右回りに♯が1つずつ増える</dt><dd>ハ長調から右（時計回り）へ進むたびに、主音が5度上がり、♯が1つ増えます（ハ→ト→ニ→イ…）。</dd>
+          <dt>左回りに♭が1つずつ増える</dt><dd>左（反時計回り）へ進むたびに、主音が5度下がり（4度上がり）、♭が1つ増えます（ハ→ヘ→変ロ→変ホ…）。</dd>
+          <dt>となりは「近い調」</dt><dd>となりどうしの調は、使う音が1つしか違わないので、曲の途中で行き来（転調）しやすい関係です。右どなりを<b>属調</b>、左どなりを<b>下属調</b>と呼びます。</dd>
+          <dt>下のほうは2つの名前</dt><dd>いちばん下のあたりでは、♯の調と♭の調が同じ音になります（嬰ヘ長調＝変ト長調など）。これを<b>異名同音調</b>といいます。</dd>
+        </dl>
+      </section>
+
+      <!-- ===== Learn ===== -->
+      <section class="view prose" id="view-learn" aria-label="調について学ぶ">
+        <h2>調について学ぶ</h2>
+        <p>音符が読めるようになって、いざ曲を弾こうと楽譜を開くと、ト音記号のすぐ右に♯や♭がいくつか並んでいます。これが<b>調号</b>で、その曲が何の<b>調</b>で書かれているかを表しています。このページでは、調とは何か、楽譜からどうやって調を読み取るかを、順を追って説明します。<span class="hint-inline">譜例の ▶ を押すと音が鳴ります。</span></p>
+        <nav class="toc" id="learnToc" aria-label="目次"></nav>
+
+        <h3 id="l-what">調ってなに？</h3>
+        <p>ドレミファソラシドの「ド」は、曲の中で特別な音です。メロディーがドで終わると「おしまい」という感じがしますね。このように、曲の中心になって落ち着く音を<b>主音</b>（しゅおん）といいます。</p>
+        <p><b>調</b>とは、「どの音を主音にして」「どんな並びの音階を使うか」の組み合わせのことです。ドを主音にした明るい音階（ドレミファソラシド）の曲は<b>ハ長調</b>、ソを主音にした同じ並びの音階の曲は<b>ト長調</b>です。</p>
+        <div class="demo" data-demo="scale" data-key="C"></div>
+        <p>ト長調の音階をソから並べると、ドレミと同じ並び（明るい響き）にするために、ファを半音上げた<b>ファ♯</b>が必要になります。</p>
+        <div class="demo" data-demo="scale" data-key="G" data-nosig="1"></div>
+        <p>曲の中に何度も出てくるファに毎回♯を書くのは大変なので、最初にまとめて書いておきます。これが<b>調号</b>です。</p>
+        <div class="demo" data-demo="scale" data-key="G"></div>
+
+        <h3 id="l-majmin">長調と短調</h3>
+        <p>音階には、明るい響きの<b>長音階</b>と、暗い（さびしい）響きの<b>短音階</b>があります。長音階でできた曲が<b>長調</b>、短音階でできた曲が<b>短調</b>です。違いは、音と音の間が「全音（1音）」か「半音」かの並び方です。</p>
+        <dl class="defs">
+          <dt>長音階</dt><dd>全・全・<b>半</b>・全・全・全・<b>半</b>（例：ドレミファソラシド）</dd>
+          <dt>短音階（自然短音階）</dt><dd>全・<b>半</b>・全・全・<b>半</b>・全・全（例：ラシドレミファソラ）</dd>
+        </dl>
+        <p>とくに大事なのは、主音から3番目の音です。長調では主音から3番目の音まで半音4つぶん（長3度）、短調では半音3つぶん（短3度）。この違いが、明るい・暗いの印象を大きく左右します。</p>
+        <div class="demo" data-demo="compare"></div>
+        <p>同じメロディーでも、長調と短調で弾くと、まったく違う表情になります。</p>
+        <div class="demo" data-demo="melody"></div>
+
+        <h3 id="l-sig">調号の読み方</h3>
+        <p>調号の♯・♭は、必ず決まった順番で書かれます。この順番は覚えてしまいましょう。</p>
+        <dl class="defs">
+          <dt>♯の順番</dt><dd><b>ファ・ド・ソ・レ・ラ・ミ・シ</b>（英語では F C G D A E B）</dd>
+          <dt>♭の順番</dt><dd><b>シ・ミ・ラ・レ・ソ・ド・ファ</b>（♯の逆の順）</dd>
+        </dl>
+        <div class="demo" data-demo="sigorder"></div>
+        <p>調号の♯・♭は、書かれている線や間の音だけでなく、<b>どのオクターブのその音にも</b>付きます。たとえば第5線のファに♯が書かれていたら、下のほうのファも全部ファ♯です。</p>
+
+        <h3 id="l-find">調号から調を見つける</h3>
+        <p>調号から、まず<b>長調</b>の名前を見つけます。</p>
+        <dl class="defs">
+          <dt>調号なし</dt><dd>ハ長調（またはイ短調）</dd>
+          <dt>♯の調</dt><dd>いちばん右（最後）の♯の<b>すぐ上の音</b>が、長調の主音です。<br>例：♯2つ（ファ・ド）→ ドのすぐ上のレ → <b>ニ長調</b></dd>
+          <dt>♭の調</dt><dd>右から<b>2番目</b>の♭の音が、長調の主音です（♭1つだけのときはヘ長調、と覚えます）。<br>例：♭3つ（シ・ミ・ラ）→ 右から2番目のミ♭ → <b>変ホ長調</b></dd>
+        </dl>
+        <p>同じ調号を使う短調は、長調の主音から<b>3つ下</b>（短3度下）の音、つまり長調の音階の6番目の音「ラ」にあたる音が主音です。ニ長調（レ）なら3つ下のシ → <b>ロ短調</b>。このように調号が同じ長調と短調を<b>平行調</b>といいます。</p>
+        <div class="demo" data-demo="pair" data-sig="2"></div>
+        <p class="memo">覚え方：♯の長調は ♯1つから順に「<b>ト・ニ・イ・ホ・ロ</b>・嬰ヘ・嬰ハ」、♭の長調は「<b>ヘ・変ロ・変ホ・変イ・変ニ</b>・変ト・変ハ」。日本式の調の名前は、ドレミの代わりに「ハニホヘトイロ」（ド＝ハ、レ＝ニ…）を使い、♯は「嬰」、♭は「変」を付けて呼びます。</p>
+
+        <h3 id="l-judge">長調か短調かを見分ける</h3>
+        <p>調号だけでは、長調と、その平行調の短調のどちらなのかは決まりません。楽譜の中から、次のような<b>手がかり</b>を探して判断します。</p>
+        <dl class="defs">
+          <dt>① 終わりの音</dt><dd>曲は主音で終わることがほとんどです。とくに、いちばん低いパート（左手・ベース）の最後の音を見ます。ニ長調・ロ短調の調号で、最後の低音がシならロ短調です。最初の低音・最初の和音も手がかりになります。</dd>
+          <dt>② 導音の臨時記号</dt><dd>短調では、主音へ向かう7番目の音（導音）を半音上げることが多く、調号にない♯や♮が<b>何度も</b>出てきます。イ短調ならソ♯、ロ短調ならラ♯、ニ短調ならド♯。臨時記号がほとんど出てこなければ長調の可能性が高いです。</dd>
+          <dt>③ 響きの明るさ</dt><dd>弾いてみて（聴いてみて）明るければ長調、暗ければ短調。最後の和音の響きも大きな手がかりです。</dd>
+        </dl>
+        <div class="demo" data-demo="lead" data-key="Am"></div>
+        <p class="memo">注意：曲の途中で別の調に移る（<b>転調</b>）ことはよくあります。また、短調の曲が最後だけ明るい和音で終わることもあります（「ピカルディの3度」。モーツァルトの「トルコ行進曲」もイ短調で始まり、イ長調で終わります）。手がかりは1つだけでなく、いくつか合わせて判断しましょう。</p>
+
+        <h3 id="l-minor">短音階は3種類</h3>
+        <p>短調では、7番目・6番目の音を半音上げて使うことがあり、そのため短音階には3つの形があります。</p>
+        <div class="demo" data-demo="minors" data-key="Am"></div>
+        <dl class="defs">
+          <dt>自然短音階</dt><dd>調号どおりの短音階。素朴で、少しあいまいな暗さ。</dd>
+          <dt>和声的短音階</dt><dd>7番目の音を半音上げた形。主音へ強く引っぱられる「導音」ができ、終わった感じがはっきりします。6番目と7番目の間が広く、少し異国風に聞こえます。</dd>
+          <dt>旋律的短音階</dt><dd>上がるときに6番目と7番目を半音上げ、下がるときは自然短音階に戻す形。なめらかなメロディーを作るための形です。</dd>
+        </dl>
+
+        <h3 id="l-rel">関係する調</h3>
+        <p>ある調と特に関係の深い調には、名前が付いています。曲の途中で移り変わる（転調する）先として、よく使われる調です。</p>
+        <dl class="defs">
+          <dt>平行調</dt><dd>調号が同じ長調と短調（ハ長調とイ短調）。使う音が全部同じです。</dd>
+          <dt>同主調</dt><dd>主音が同じ長調と短調（ハ長調とハ短調）。明るさがガラッと変わります。</dd>
+          <dt>属調</dt><dd>5度上の音を主音にする調（ハ長調に対してト長調）。♯が1つ増える／♭が1つ減る。</dd>
+          <dt>下属調</dt><dd>5度下（4度上）の音を主音にする調（ハ長調に対してヘ長調）。♭が1つ増える／♯が1つ減る。</dd>
+        </dl>
+        <p>これらの関係は「五度圏」のタブで、円の形で見られます。</p>
+
+        <h3 id="l-mod">曲の途中で調が変わる（転調）</h3>
+        <p>長い曲では、途中で調が変わることがよくあります。大きく変わるときは、複縦線（2本の縦線）のあとに新しい調号が書き直されます。一時的な転調のときは調号はそのままで、臨時記号が続けて出てきます。<b>同じ臨時記号が何小節も続いたら、転調しているサイン</b>です。そのときは、続く臨時記号を「仮の調号」と考えて、同じように調を考えてみましょう。</p>
+
+        <h3 id="l-color">調のイメージは本当にある？</h3>
+        <p>「ニ長調は輝かしい」「ニ短調は厳粛」など、調ごとのイメージが語られることがあります。一覧のページでもそうしたイメージを紹介していますが、これは<b>主観や歴史的な連想を含む目安</b>です。</p>
+        <p>いまのピアノなどで使われる<b>平均律</b>では、どの調でも音と音の間隔の比率は同じです。だから曲を別の調に移しても（移調しても）、同じ曲として聞こえます。それでも調ごとに違う印象を感じる理由として、次のようなことが考えられています。</p>
+        <dl class="defs">
+          <dt>音の高さそのもの</dt><dd>同じ長調でも、高い音域なら軽く明るく、低い音域なら重く落ち着いて聞こえます。</dd>
+          <dt>楽器の響き</dt><dd>ヴァイオリンやギターは開放弦の音（ソ・レ・ラ・ミなど）がよく響くので、ニ長調・ト長調・イ長調・ホ短調などが鳴りやすく、明るく聞こえます。吹奏楽の管楽器は♭の調が得意です。</dd>
+          <dt>弾きやすさ</dt><dd>演奏しやすい調では、のびのびとした演奏になりやすいといわれます。</dd>
+          <dt>昔の調律</dt><dd>平均律が広まる前の調律では、調ごとに和音の響きの濁り方が違い、調の性格がもっとはっきりしていました。18世紀には調ごとの性格を論じた音楽家もいます。</dd>
+          <dt>有名な曲の連想</dt><dd>「ハ短調＝ベートーヴェンの『運命』」のように、名曲のイメージが調の印象として語り継がれています。</dd>
+        </dl>
+
+        <h3 id="l-game">ゲームに曲を付ける人へ</h3>
+        <p>自作ゲームのBGMを作るとき、場面の雰囲気を決めるのは、調の種類よりも<b>長調か短調か</b>、<b>テンポ</b>、<b>音域</b>、<b>音色</b>のほうがずっと大きな要素です。まずは「明るい場面は長調、暗い・緊張する場面は短調」から始めて、迷ったらハ長調やイ短調で作り、あとから移調して高さを調整するのがおすすめです（DTMソフトなら移調は一瞬です）。</p>
+        <div class="scenes" id="sceneList"></div>
+        <p class="hint">あくまで一例です。名作ゲームにも、明るい長調の戦闘曲や、短調の町の曲はたくさんあります。</p>
+
+        <h4>響きを変える小技</h4>
+        <dl class="defs">
+          <dt>同主調へ切り替える</dt><dd>ハ長調 → ハ短調のように主音はそのままで長短を入れかえると、「楽しかった村が襲われる」のような<b>暗転</b>が表現できます。逆なら「希望が見える」場面に。</dd>
+          <dt>半音・全音上げる転調</dt><dd>ループの2周目やボスの第2形態で、曲全体を半音〜全音上げると、一気に盛り上がります。</dd>
+          <dt>ループの切れ目</dt><dd>ループするBGMは、最後を主音・主和音で完全に終わらせず、5番目の音（属和音）で終わってから先頭の主和音へ戻すと、自然につながります。</dd>
+          <dt>長調・短調以外の音階（旋法）</dt><dd>ドリア旋法・リディア旋法などの音階を使うと、長調・短調とはひと味違う雰囲気が出せます。下で聴きくらべてみましょう。</dd>
+        </dl>
+        <div class="demo" data-demo="modes"></div>
+
+        <h4>パブリックドメインの曲を使うとき</h4>
+        <p>作曲者が亡くなってから長い年月がたったクラシックの曲は、作曲者の著作権の保護期間が終わっていて、メロディーを自分のゲームに使える場合が多くあります。ただし、<b>最近の人が作った編曲や校訂版の楽譜、演奏の録音（音源）</b>には、別の権利がある場合があります。古い原典の楽譜をもとに自分で打ち込むのが安心です。保護期間は国によって違うので、公開する前に確認してください（このアプリの情報は法的な助言ではありません）。一覧のページの曲名の横の「楽譜を見る」から、IMSLP（パブリックドメインの楽譜を集めたサイト）のその曲のページを開けます（曲集に入っている曲は曲集のページです）。</p>
+
+        <h3 id="l-howto">このアプリの使い方</h3>
+        <dl class="defs">
+          <dt>調号を読む</dt><dd>五線譜の調号を見て、その調号を使う長調と短調の組を選びます。いちばん基本の練習です。</dd>
+          <dt>手がかりで調を特定</dt><dd>調号に加えて、「響きが明るい／暗い」「曲の終わりの音」「導音の臨時記号」「メロディーの断片」などの手がかりが示されます。調号から候補を2つにしぼり、手がかりでどちらかを決めます。</dd>
+          <dt>調号を選ぶ</dt><dd>「ニ長調」のような調の名前を見て、その調号の五線譜を4つから選びます。</dd>
+          <dt>聴いて調を当てる</dt><dd>音階（構成音）や和音が流れるので、その調を答えます。はじめは設定の「調号を見せる」をオンにして、長調か短調かを聴き分ける練習から始めるのがおすすめです。</dd>
+          <dt>長調？短調？</dt><dd>流れたメロディーや和音が、明るい長調か暗い短調かを聴き分けます。</dd>
+          <dt>関係調</dt><dd>「ト長調の平行調は？」のように、関係する調を答えます。</dd>
+        </dl>
+        <p>「聴く」タブでは、よく知られた曲をいろいろな調に移して聴きくらべられます。「選んだ調を順に聴く」で、たとえばハ短調→ハ長調と続けて鳴らすと、暗い場面から明るい場面へ移る感じをつかめます。ゲームの場面転換のイメージづくりにも使ってみてください。</p>
+        <p>クイズ画面の「ステップ」を押すと、はじめての人向けの順番で、出題の設定がまとめて切り替わってクイズが始まります。クイズ中はキーボードでも答えられます。<kbd>1</kbd>〜<kbd>4</kbd> で回答、<kbd>Enter</kbd> で次へ、<kbd>Space</kbd> でもう一度聴く、<kbd>Esc</kbd> でやめる、です。</p>
+
+        <h3 id="l-sound">音について</h3>
+        <p>音はお使いのブラウザの中で合成しています（Web Audio API）。最初にどこかをタップするまでは、ブラウザの決まりで音が鳴りません。iPhone はマナーモード（消音スイッチがオン）のとき、音が出ないことがあります。</p>
+
+        <h3 id="l-app">アプリとして使う</h3>
+        <p>ホーム画面に追加すると、アプリのように全画面で使えます。<strong>https:// で公開されたページから追加した場合は</strong>、一度開いたあとオフラインでも動きます。</p>
+        <ul class="sources">
+          <li>iPhone（Safari）：共有ボタン →「ホーム画面に追加」</li>
+          <li>Android（Chrome）：メニュー →「アプリをインストール」または「ホーム画面に追加」</li>
+        </ul>
+        <button class="btn small" id="installBtn" type="button" hidden>アプリとしてインストール</button>
+
+        <h3 id="l-data">データの保存</h3>
+        <p>正答率・練習した日の記録・設定は、お使いのブラウザの中だけに保存されます。外部へ送信されることはありません。「記録」タブから消すことができます。</p>
+
+        <h3 id="l-credit">クレジット</h3>
+        <ul class="sources">
+          <li>ト音記号・ヘ音記号の字形：Noto Music（Google Fonts, SIL Open Font License）</li>
+          <li>フォント：Shippori Mincho／Zen Kaku Gothic New／Cormorant Garamond（Google Fonts, SIL Open Font License）</li>
+          <li>楽譜の検索リンク：<a href="https://imslp.org/" target="_blank" rel="noopener">IMSLP（国際楽譜ライブラリープロジェクト）</a></li>
+        </ul>
+      </section>
+
+      <!-- ===== Record ===== -->
+      <section class="view" id="view-record" aria-label="記録">
+        <div class="tiles" id="recTiles"></div>
+        <h2 class="sub-head">この2週間</h2>
+        <div class="bars" id="recBars"></div>
+        <h2 class="sub-head">苦手な調</h2>
+        <div id="recWeak"></div>
+        <h2 class="sub-head">調ごとの正答率</h2>
+        <div class="heat" id="recHeat"></div>
+        <button class="btn ghost small" id="resetStats" type="button">記録をすべて消す</button>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="sheet" id="keySheet" aria-label="調の詳細">
+    <div class="sheet-inner">
+      <button class="icon-btn sheet-close" id="sheetClose" type="button" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div id="sheetBody"></div>
+    </div>
+  </dialog>
+
+  <nav class="bottom-nav" aria-label="メニュー">
+    <button class="nav-item" data-view="quiz" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4M12 16.6v.2"/></svg>
+      <span>クイズ</span>
+    </button>
+    <button class="nav-item" data-view="keys" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 10h18M3 14h18M3 18h18"/><path d="M8.3 3.5v14M11 3v14" stroke-width="1.2"/><path class="fill" d="M6.6 8.4l6-1.6v1.2l-6 1.6zM6.6 12.4l6-1.6v1.2l-6 1.6z"/></svg>
+      <span>調の一覧</span>
+    </button>
+    <button class="nav-item" data-view="listen" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14.5v-2a7.5 7.5 0 0 1 15 0v2"/><rect x="3.5" y="13.5" width="4" height="6.5" rx="1.6"/><rect x="16.5" y="13.5" width="4" height="6.5" rx="1.6"/></svg>
+      <span>聴く</span>
+    </button>
+    <button class="nav-item" data-view="circle" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3.5v4.2M20.5 12h-4.2M12 20.5v-4.2M3.5 12h4.2"/></svg>
+      <span>五度圏</span>
+    </button>
+    <button class="nav-item" data-view="learn" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5c2.8-1 5.6-1 8 .8 2.4-1.8 5.2-1.8 8-.8v13c-2.8-1-5.6-1-8 .8-2.4-1.8-5.2-1.8-8-.8z"/><path d="M12 6.3v13"/></svg>
+      <span>学ぶ</span>
+    </button>
+    <button class="nav-item" data-view="record" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5h15M7 16.5v-5M12 16.5V7M17 16.5v-8"/></svg>
+      <span>記録</span>
+    </button>
+  </nav>
+
+  <script src="music.js"></script>
+  <script src="keys.js"></script>
+  <script src="melodies.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

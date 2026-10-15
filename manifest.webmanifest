@@ -1,0 +1,17 @@
+{
+  "name": "調よみ練習帳",
+  "short_name": "調よみ",
+  "description": "楽譜の調号から調を読み取る練習帳。手がかりクイズ・聴き取りクイズ・調の一覧・五度圏",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf7f2",
+  "theme_color": "#6a4c93",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
